@@ -160,8 +160,8 @@ export default function Page() {
                                     <td>{repairRecord.customerName}</td>
                                     <td>{repairRecord.deviceName}</td>
                                     <td>{repairRecord.problem}</td>
-                                    <td>{dayjs(repairRecord.createdAt).format('DD/MM/YYYY')}</td>
-                                    <td>{repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY') : '-'}</td>
+                                    <td>{dayjs(repairRecord.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                                    <td>{repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY HH:mm') : '-'}</td>
                                     <td>{repairRecord.solving}</td>
                                     <td>{getStatusName(repairRecord.status)}</td>
                                     <td className="text-center">

@@ -61,6 +61,21 @@ export default function Page() {
         }
     }
 
+    // const fetchRepairRecords = async () => {
+    //     try {
+    //         const response = await axios.get(`${config.apiUrl}/api/repairRecord/list`);
+    //         // กรองข้อมูลที่ไม่รวมสถานะ 'done' และ 'complete'
+    //         const filteredRecords = response.data.filter((record: any) => record.status !== 'done' && record.status !== 'complete');
+    //         setRepairRecords(filteredRecords);
+    //     } catch (error: any) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'error',
+    //             text: error.message,
+    //         });
+    //     }
+    // }
+
     const handleDeviceChange = (deviceId: string) => {
         const device = (devices as any).find((device: any) => device.id === parseInt(deviceId));
 
@@ -246,17 +261,17 @@ export default function Page() {
             status: 'complete', // ตั้งค่าสถานะเป็น 'complete'
             payDate: new Date().toISOString() // เพิ่ม payDate เป็นเวลาปัจจุบัน
         }
-    
+
         try {
             await axios.put(`${config.apiUrl}/api/repairRecord/receive`, payload);
-    
+
             Swal.fire({
                 icon: 'success',
                 title: 'รับเครื่องเรียบร้อย',
                 text: 'ข้อมูลถูกอัปเดตแล้ว',
                 timer: 1000
             });
-    
+
             fetchRepairRecords(); // รีเฟรชข้อมูลหลังจากรับเครื่อง
             closeModalReceive();
             resetForm(); // รีเซ็ตฟอร์มเป็นค่าเริ่มต้น
@@ -272,7 +287,7 @@ export default function Page() {
     return (
         <>
             <div className="card">
-                <h1>Repair Record</h1>
+                <h1>Repair Record (แจ้งซ่อม)</h1>
                 <div className="card-body">
                     <button className="btn-primary" onClick={openModal}>
                         <i className="fa-solid fa-plus mr-3"></i>
@@ -289,22 +304,22 @@ export default function Page() {
                                 <th>End Date</th>
                                 <th>Status</th>
                                 {/* <th className="text-right" style={{ paddingRight: '4px' }}>ค่าบริการ</th> */}
-                                <th style={{ width: '360px' }}></th>
+                                <th style={{ width: '140px' }}></th>
                             </tr>
                         </thead>
-                        
+
                         <tbody>
                             {repairRecords.map((repairRecord: any, index: number) => (
                                 <tr key={index}>
                                     <td>{repairRecord.customerName}</td>
                                     <td>{repairRecord.deviceName}</td>
                                     <td>{repairRecord.problem}</td>
-                                    <td>{dayjs(repairRecord.createdAt).format('DD/MM/YYYY')}</td>
-                                    <td>{repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY') : '-'}</td>
+                                    <td>{dayjs(repairRecord.createdAt).format('DD/MM/YYYY HH:mm')}</td>
+                                    <td>{repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY HH:mm') : '-'}</td>
                                     <td>{getStatusName(repairRecord.status)}</td>
-                                    {/* <td className="text-right">{repairRecord.amount?.toLocaleString('th-TH')}</td> */}
+                                    
                                     <td>
-                                        <button
+                                        {/* <button
                                             className="btn-edit"
                                             onClick={() => openModalReceive(repairRecord)}
                                             disabled={repairRecord.status !== 'done'} // ปิดการใช้งานถ้าสถานะไม่ใช่ 'done'
@@ -312,15 +327,15 @@ export default function Page() {
                                         >
                                             <i className="fa-solid fa-check mr-3"></i>
                                             Complate
-                                        </button>
+                                        </button> */}
                                         <button className="btn-edit" onClick={() => handleEdit(repairRecord)}>
                                             <i className="fa-solid fa-edit mr-3"></i>
                                             Edit
                                         </button>
-                                        <button className="btn-delete" onClick={() => handleDelete(repairRecord.id)}>
+                                        {/* <button className="btn-delete" onClick={() => handleDelete(repairRecord.id)}>
                                             <i className="fa-solid fa-trash mr-3"></i>
                                             Delete
-                                        </button>
+                                        </button> */}
                                     </td>
                                 </tr>
                             ))}
@@ -377,12 +392,28 @@ export default function Page() {
                     </div>
                 </div>
 
-                <div className="mt-4">อาการเสีย</div>
+                {/* <div className="mt-4">อาการเสีย (Problem)</div>
                 <textarea className="form-control w-full"
                     value={problem}
-                    onChange={(e) => setProblem(e.target.value)}></textarea>
+                    onChange={(e) => setProblem(e.target.value)}>
+                </textarea>
 
                 <button className='btn-primary mt-4' onClick={handleSave}>
+                    <i className="fa-solid fa-check mr-3"></i>
+                    Save
+                </button> */}
+                <div className="mt-4">อาการเสีย (Problem)</div>
+                <textarea
+                    className="form-control w-full"
+                    value={problem}
+                    onChange={(e) => setProblem(e.target.value.trimStart())} // ลบช่องว่างหน้า string
+                ></textarea>
+
+                <button
+                    className={`btn-primary mt-4 ${!problem.trim() ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={handleSave}
+                    disabled={!problem.trim()} // ปิดปุ่มถ้าไม่มีค่า
+                >
                     <i className="fa-solid fa-check mr-3"></i>
                     Save
                 </button>

@@ -9,6 +9,10 @@ import dayjs from "dayjs";
 import { useRouter } from "next/navigation"; // Import useRouter จาก next/navigation
 
 export default function Page() {
+    const [totalRepairRecord, setTotalRepairRecord] = useState(0);
+    const [totalRepairRecordNotComplete, setTotalRepairRecordNotComplete] = useState(0);
+    const [totalRepairRecordComplete, setTotalRepairRecordComplete] = useState(0);
+    const [totalRepairRecordCustomer, setTotalRepairRecordCustomer] = useState(0);
     const [repairRecords, setRepairRecords] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [id, setId] = useState(0);
@@ -355,6 +359,25 @@ export default function Page() {
 
     return (
         <>
+        <div className="text-2xl font-bold">Dashboard</div>
+            <div className="flex mt-5 gap-4">
+                <div className="w-1/4 bg-red-600 p-4 rounded-lg text-right">
+                    <div className="text-xl font-bold">งานซ่อมทั้งหมด</div>
+                    <div className="text-4xl font-bold">{totalRepairRecord}</div>
+                </div>
+                <div className="w-1/4 bg-green-400 p-4 rounded-lg text-right">
+                    <div className="text-xl font-bold">งานรอตรวจรับ</div>
+                    <div className="text-4xl font-bold">{totalRepairRecordComplete}</div>
+                </div>
+                <div className="w-1/4 bg-yellow-300 p-4 rounded-lg text-right">
+                    <div className="text-xl font-bold text-black">งานกำลังซ่อม</div>
+                    <div className="text-4xl font-bold text-black">{totalRepairRecordNotComplete}</div>
+                </div> 
+                <div className="w-1/4 bg-blue-400 p-4 rounded-lg text-right">
+                    <div className="text-xl font-bold">งานรอลูกค้า</div>
+                    <div className="text-4xl font-bold">{totalRepairRecordNotComplete}</div>
+                </div> 
+            </div>
             <div className="card">
                 <h1>Downtime Dashboard Monitoring</h1>
                 <div>

@@ -37,13 +37,13 @@ export function Sidebar() {
     if (userLevel === 'admin') {
         menuItems = [
             { title: 'Dashboard', href: '/backoffice/dashboard', icon: 'fa-solid fa-chart-simple' },
-            { title: 'Downtime', href: '/backoffice/downtime', icon: 'fa-solid fa-clock' },
-            { title: 'Member', href: '/backoffice/user', icon: 'fa-solid fa-users' },
+            { title: 'Downtime', href: '/backoffice/downtime', icon: 'fa-solid fa-clock' },           
             { title: 'Repair Record', href: '/backoffice/repair-record', icon: 'fa-solid fa-screwdriver' },
             { title: 'Repair Status', href: '/backoffice/repair-status', icon: 'fa-solid fa-gear' },
-            { title: 'Income Report', href: '/backoffice/income-report', icon: 'fa-solid fa-money-bill' },
             { title: 'All Record', href: '/backoffice/record', icon: 'fa-solid fa-list' },
+            { title: 'Member', href: '/backoffice/user', icon: 'fa-solid fa-users' },
             { title: 'Device', href: '/backoffice/device', icon: 'fa-solid fa-box' },
+            { title: 'Income Report', href: '/backoffice/income-report', icon: 'fa-solid fa-money-bill' },
             { title: 'Company', href: '/backoffice/company', icon: 'fa-solid fa-shop' },
         ];
     } else if (userLevel === 'user') {
