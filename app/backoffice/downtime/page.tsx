@@ -6,12 +6,14 @@ import config from "@/app/config";
 import Swal from "sweetalert2";
 import Modal from "@/app/components/modal";
 import dayjs from "dayjs";
-import { useRouter } from "next/navigation"; // Import useRouter จาก next/navigation
+import { useRouter } from "next/navigation";
 
 export default function Page() {
     const [totalRepairRecord, setTotalRepairRecord] = useState(0);
-    const [totalRepairRecordNotComplete, setTotalRepairRecordNotComplete] = useState(0);
-    const [totalRepairRecordComplete, setTotalRepairRecordComplete] = useState(0);
+    const [totalRepairRecordActive, setTotalRepairRecordActive] = useState(0);
+    const [totalRepairRecordRepairing, setTotalRepairRecordRepairing] = useState(0);
+    const [totalRepairRecordDone, setTotalRepairRecordDone] = useState(0);
+    const [totalRepairRecordStatus, setTotalRepairRecordStatus] = useState(0);
     const [totalRepairRecordCustomer, setTotalRepairRecordCustomer] = useState(0);
     const [repairRecords, setRepairRecords] = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -23,35 +25,49 @@ export default function Page() {
         { value: 'pending', label: 'รอลูกค้ายืนยัน (panding)' },
         { value: 'repairing', label: 'กำลังซ่อม (repairing)' },
         { value: 'done', label: 'ซ่อมเสร็จ (done)' },
-        
     ]);
     const [statusForFilter, setStatusForFilter] = useState('');
     const [tempRepairRecords, setTempRepairRecords] = useState([]);
     const [engineers, setEngineers] = useState([]);
     const [engineerId, setEngineerId] = useState(0);
-    const [prevStatus, setPrevStatus] = useState('');
 
-    const router = useRouter(); // ใช้ useRouter สำหรับการนำทาง
+    const router = useRouter();
 
+    // Fetch ข้อมูลเริ่มต้น
     useEffect(() => {
         fetchRepairRecords();
         fetchEngineers();
+        fetchData();
+        fetchDataIncomePerDay();
     }, []);
 
-    // เมื่อมีการโหลดข้อมูล repair record
-    // useEffect(() => {
-    //     const fetchData = async () => {
-    //         const response = await axios.get(`${config.apiUrl}/api/repairRecord/${id}`);
-    //         setPrevStatus(response.data.status);
-    //     };
-    //     fetchData();
-    // }, [id]);
+    const fetchData = async () => {
+        
+        await fetchDataIncomePerDay();
+    };
 
+    // ดึงข้อมูลรายการซ่อม
+    const fetchRepairRecords = async () => {
+        try {
+            const response = await axios.get(`${config.apiUrl}/api/repairRecord/list`);
+            const filteredRecords = response.data.filter((record: any) => record.status !== 'complete');
+            setRepairRecords(filteredRecords);
+            setTempRepairRecords(filteredRecords); // เก็บข้อมูลที่กรองแล้วไว้ใน tempRepairRecords
+        } catch (error: any) {
+            Swal.fire({
+                icon: 'error',
+                title: 'error',
+                text: error.message,
+            });
+        }
+    };
+
+    // ดึงข้อมูลช่างซ่อม
     const fetchEngineers = async () => {
         try {
             const response = await axios.get(`${config.apiUrl}/api/user/listEngineer`);
             setEngineers(response.data);
-            setEngineerId(response.data[0].id);
+            setEngineerId(response.data[0]?.id || 0); // กำหนดค่าเริ่มต้นให้ engineerId
         } catch (error: any) {
             Swal.fire({
                 icon: 'error',
@@ -59,93 +75,48 @@ export default function Page() {
                 text: error.message,
             });
         }
-    }
+    };
 
-    const fetchRepairRecords = async () => {
+    // ดึงข้อมูลแดชบอร์ด
+    const fetchDataIncomePerDay = async () => {
         try {
-            const response = await axios.get(`${config.apiUrl}/api/repairRecord/list`);
-            // กรองข้อมูลที่ไม่รวมสถานะ 'complete'
-            const filteredRecords = response.data.filter((record: any) => record.status !== 'complete');
-            setRepairRecords(filteredRecords);
-            setTempRepairRecords(filteredRecords); // เก็บข้อมูลที่กรองแล้วไว้ใน tempRepairRecords ด้วย
+            const response = await axios.get(`${config.apiUrl}/api/repairRecord/dashboard`);
+            if (response.data) {
+                setTotalRepairRecord(response.data.totalRepairRecord || 0);
+                setTotalRepairRecordActive(response.data.totalRepairRecordActive || 0);
+                setTotalRepairRecordRepairing(response.data.totalRepairRecordRepairing || 0);
+                setTotalRepairRecordDone(response.data.totalRepairRecordDone || 0);
+                setTotalRepairRecordStatus(response.data.totalRepairRecordStatus || 0);
+                setTotalRepairRecordCustomer(response.data.totalRepairRecordCustomer || 0);
+            }
         } catch (error: any) {
             Swal.fire({
                 icon: 'error',
-                title: 'error',
+                title: 'การดึงข้อมูลล้มเหลว',
                 text: error.message,
             });
         }
-    }
+    };
 
+    // กรองข้อมูลตามสถานะ
     const handleFilter = (statusForFilter: string) => {
         if (statusForFilter) {
-            // กรองข้อมูลที่ไม่รวมสถานะ 'complete'
             const filteredRecords = tempRepairRecords.filter((repairRecord: any) =>
                 repairRecord.status === statusForFilter && repairRecord.status !== 'complete'
             );
             setRepairRecords(filteredRecords);
-            setStatusForFilter(statusForFilter);
         } else {
-            // กรองข้อมูลที่ไม่รวมสถานะ 'complete' เมื่อไม่มีการเลือกสถานะ
             const filteredRecords = tempRepairRecords.filter((repairRecord: any) =>
                 repairRecord.status !== 'complete'
             );
             setRepairRecords(filteredRecords);
-            setStatusForFilter('');
         }
-    }
+        setStatusForFilter(statusForFilter);
+    };
 
-    // const handleSave = async () => {
-    //     try {
-    //         const payload = {
-    //             status: status,
-    //             solving: solving,
-    //             engineerId: engineerId,
-    //             endJobDate: status === 'done' ? new Date().toISOString() : null
-    //         }
-
-    //         await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${id}`, payload);
-
-    //         // รีเฟรชข้อมูลหลังจากอัปเดตสถานะ
-    //         fetchRepairRecords();
-    //         setShowModal(false);
-    //     } catch (error: any) {
-    //         Swal.fire({ icon: 'error', title: 'error', text: error.message });
-    //     }
-    // }
-
-    // const handleSave = async () => {
-    //     try {
-    //         // ตรวจสอบว่าถ้าสถานะเปลี่ยนเป็น repairing ต้องมีช่างซ่อมถูกเลือก
-    //         if (status === 'repairing' && engineerId === 0) {
-    //             Swal.fire({
-    //                 icon: 'error',
-    //                 title: 'Error',
-    //                 text: 'กรุณาเลือกช่างซ่อมก่อนบันทึก',
-    //             });
-    //             return;
-    //         }
-
-    //         const payload = {
-    //             status: status,
-    //             solving: solving,
-    //             engineerId: engineerId,
-    //             endJobDate: status === 'done' ? new Date().toISOString() : null
-    //         }
-
-    //         await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${id}`, payload);
-
-    //         // รีเฟรชข้อมูลหลังจากอัปเดตสถานะ
-    //         fetchRepairRecords();
-    //         setShowModal(false);
-    //     } catch (error: any) {
-    //         Swal.fire({ icon: 'error', title: 'error', text: error.message });
-    //     }
-    // }
-
+    // บันทึกการเปลี่ยนแปลงสถานะ
     const handleSave = async () => {
         try {
-            // ตรวจสอบว่าถ้าสถานะเปลี่ยนเป็น repairing ต้องมีช่างซ่อมถูกเลือก
             if (status === 'repairing' && engineerId === 0) {
                 Swal.fire({
                     icon: 'error',
@@ -155,7 +126,6 @@ export default function Page() {
                 return;
             }
 
-            // ตรวจสอบว่าถ้าสถานะเปลี่ยนเป็น done ต้องมีการกรอกข้อมูลใน solving
             if (status === 'done' && !solving?.trim()) {
                 Swal.fire({
                     icon: 'error',
@@ -169,133 +139,40 @@ export default function Page() {
                 status: status,
                 solving: solving,
                 engineerId: engineerId,
-                endJobDate: status === 'done' ? new Date().toISOString() : null
-
-            }
+                endJobDate: status === 'done' ? new Date().toISOString() : null,
+            };
 
             await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${id}`, payload);
 
             // รีเฟรชข้อมูลหลังจากอัปเดตสถานะ
-            fetchRepairRecords();
-            setShowModal(false);
+            await fetchRepairRecords();
+            setShowModal(false); // ปิด Modal หลังบันทึกสำเร็จ
         } catch (error: any) {
             Swal.fire({ icon: 'error', title: 'error', text: error.message });
         }
-    }
+    };
 
-    const getStatusName = (status: string) => {
-        const statusObj = statusList.find((item: any) => item.value === status);
-        return statusObj?.label ?? 'รอซ่อม';
-    }
-
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'active':
-                return 'bg-red-500';
-            case 'pending':
-                return 'bg-blue-300';
-            case 'repairing':
-                return 'bg-yellow-300';
-            case 'done':
-                return 'bg-green-300';
-            case 'complete':
-                return 'bg-gray-200';
-            default:
-                return 'bg-red-500';
-        }
-    }
-
+    // เปิด Modal และตั้งค่าข้อมูลเริ่มต้น
     const handleEdit = (id: number) => {
         const repairRecord = repairRecords.find((repairRecord: any) => repairRecord.id === id) as any;
-
         if (repairRecord) {
-            setEngineerId(repairRecord?.engineerId ?? 0); // กำหนดช่างซ่อมตามสถานะที่มีอยู่
-
+            setEngineerId(repairRecord?.engineerId ?? 0);
             setId(id);
             setStatus(repairRecord?.status ?? '');
             setSolving(repairRecord?.solving ?? '');
             setShowModal(true);
         }
-    }
+    };
 
-    // const handleCardClick = (repairRecord: any) => {
-    //     if (repairRecord.status === 'active') {
-    //         // นำทางไปที่หน้า repair-status พร้อมกับส่ง ID ของ repairRecord
-    //         router.push(`/repair-status/${repairRecord.id}`);
-    //     } else {
-    //         // ถ้าไม่ใช่สถานะ active ให้เปิด Modal เพื่อแก้ไขสถานะ
-    //         handleEdit(repairRecord.id);
-    //     }
-    // }
-
-    // const handleCardClick = async (repairRecord: any) => {
-    //     console.log("Repair Record Clicked:", repairRecord);
-
-    //     if (repairRecord.status === 'active') {
-    //         // อัปเดตสถานะเป็น 'repairing' ก่อนเปิด Modal
-    //         try {
-    //             await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${repairRecord.id}`, {
-    //                 status: 'repairing'
-    //             });
-
-    //             // Fetch ข้อมูลล่าสุดและเปิด Modal
-    //             fetchRepairRecords();
-    //             handleEdit(repairRecord.id); // เปิด Modal เพื่อปรับสถานะ
-    //         } catch (error: any) {
-    //             Swal.fire({
-    //                 icon: 'error',
-    //                 title: 'Error',
-    //                 text: error.message,
-    //             });
-    //         }
-    //     } else if (repairRecord.status === 'done') {
-    //         const result = await Swal.fire({
-    //             title: "ยอมรับเครื่องหรือไม่?",
-    //             text: "หากยอมรับเครื่อง สถานะจะเปลี่ยนเป็น Complete",
-    //             icon: "question",
-    //             showCancelButton: true,
-    //             confirmButtonText: "OK",
-    //             cancelButtonText: "NO",
-    //         });
-
-    //         let newStatus = repairRecord.status;
-    //         if (result.isConfirmed) {
-    //             newStatus = "complete";
-    //         } else if (result.dismiss === Swal.DismissReason.cancel) {
-    //             newStatus = "repairing";
-    //         }
-
-    //         try {
-    //             await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${repairRecord.id}`, {
-    //                 status: newStatus
-    //             });
-
-    //             fetchRepairRecords();
-    //         } catch (error: any) {
-    //             Swal.fire({
-    //                 icon: 'error',
-    //                 title: 'Error',
-    //                 text: error.message,
-    //             });
-    //         }
-    //     } else {
-    //         handleEdit(repairRecord.id); // เปิด Modal สำหรับสถานะอื่น ๆ
-    //     }
-    // };
-
+    // จัดการการคลิกการ์ด
     const handleCardClick = async (repairRecord: any) => {
-        console.log("Repair Record Clicked:", repairRecord);
-
         if (repairRecord.status === 'active') {
-            // อัปเดตสถานะเป็น 'repairing' ก่อนเปิด Modal
             try {
                 await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${repairRecord.id}`, {
-                    status: 'repairing'
+                    status: 'repairing',
                 });
-
-                // Fetch ข้อมูลล่าสุดและเปิด Modal
-                fetchRepairRecords();
-                handleEdit(repairRecord.id); // เปิด Modal เพื่อปรับสถานะ
+                await fetchRepairRecords(); // รีเฟรชข้อมูล
+                handleEdit(repairRecord.id); // เปิด Modal
             } catch (error: any) {
                 Swal.fire({
                     icon: 'error',
@@ -318,7 +195,7 @@ export default function Page() {
 
             if (result.isConfirmed) {
                 newStatus = "complete";
-                payDate = new Date().toISOString(); // บันทึกเวลาปัจจุบันในรูปแบบ ISO string
+                payDate = new Date().toISOString();
             } else if (result.dismiss === Swal.DismissReason.cancel) {
                 newStatus = "repairing";
             }
@@ -326,10 +203,9 @@ export default function Page() {
             try {
                 await axios.put(`${config.apiUrl}/api/repairRecord/updateStatus/${repairRecord.id}`, {
                     status: newStatus,
-                    payDate: payDate // ส่ง payDate ไปยัง API
+                    payDate: payDate,
                 });
-
-                fetchRepairRecords();
+                await fetchRepairRecords(); // รีเฟรชข้อมูล
             } catch (error: any) {
                 Swal.fire({
                     icon: 'error',
@@ -342,46 +218,61 @@ export default function Page() {
         }
     };
 
-    const groupRecordsByStatus = () => {
-        const grouped: { [key: string]: any[] } = {};
+    // แสดงชื่อสถานะ
+    const getStatusName = (status: string) => {
+        const statusObj = statusList.find((item: any) => item.value === status);
+        return statusObj?.label ?? 'รอซ่อม';
+    };
 
-        repairRecords.forEach((record: any) => {
-            if (!grouped[record.status]) {
-                grouped[record.status] = [];
-            }
-            grouped[record.status].push(record);
-        });
-
-        return grouped;
-    }
-
-    const groupedRecords = groupRecordsByStatus();
+    // แสดงสีสถานะ
+    const getStatusColor = (status: string) => {
+        switch (status) {
+            case 'active':
+                return 'bg-red-500';
+            case 'pending':
+                return 'bg-blue-300';
+            case 'repairing':
+                return 'bg-yellow-300';
+            case 'done':
+                return 'bg-green-300';
+            case 'complete':
+                return 'bg-gray-200';
+            default:
+                return 'bg-red-500';
+        }
+    };
 
     return (
         <>
-        <div className="text-2xl font-bold">Dashboard</div>
-            <div className="flex mt-5 gap-4">
-                <div className="w-1/4 bg-red-600 p-4 rounded-lg text-right">
-                    <div className="text-xl font-bold">งานซ่อมทั้งหมด</div>
-                    <div className="text-4xl font-bold">{totalRepairRecord}</div>
-                </div>
-                <div className="w-1/4 bg-green-400 p-4 rounded-lg text-right">
-                    <div className="text-xl font-bold">งานรอตรวจรับ</div>
-                    <div className="text-4xl font-bold">{totalRepairRecordComplete}</div>
-                </div>
-                <div className="w-1/4 bg-yellow-300 p-4 rounded-lg text-right">
-                    <div className="text-xl font-bold text-black">งานกำลังซ่อม</div>
-                    <div className="text-4xl font-bold text-black">{totalRepairRecordNotComplete}</div>
-                </div> 
-                <div className="w-1/4 bg-blue-400 p-4 rounded-lg text-right">
-                    <div className="text-xl font-bold">งานรอลูกค้า</div>
-                    <div className="text-4xl font-bold">{totalRepairRecordNotComplete}</div>
-                </div> 
-            </div>
+            <div className="text-2xl font-bold text-white">Downtime Dashboard Monitoring</div>
             <div className="card">
-                <h1>Downtime Dashboard Monitoring</h1>
+                <div className="flex mt-3 gap-4">
+                    {/* แสดงข้อมูลแดชบอร์ด */}
+                    <div className="w-1/5 bg-indigo-600 p-4 rounded-lg text-right">
+                        <div className="text-xl font-bold">งานซ่อมทั้งหมด</div>
+                        <div className="text-4xl font-bold">{totalRepairRecordStatus}</div>
+                    </div>
+                    <div className="w-1/5 bg-red-600 p-4 rounded-lg text-right">
+                        <div className="text-xl font-bold">งานรอซ่อม</div>
+                        <div className="text-4xl font-bold">{totalRepairRecordActive}</div>
+                    </div>
+                    <div className="w-1/5 bg-yellow-300 p-4 rounded-lg text-right">
+                        <div className="text-xl font-bold text-black">งานกำลังซ่อม</div>
+                        <div className="text-4xl font-bold text-black">{totalRepairRecordRepairing}</div>
+                    </div>
+                    <div className="w-1/5 bg-green-400 p-4 rounded-lg text-right">
+                        <div className="text-xl font-bold">งานรอตรวจรับ</div>
+                        <div className="text-4xl font-bold">{totalRepairRecordDone}</div>
+                    </div>
+                    <div className="w-1/5 bg-blue-400 p-4 rounded-lg text-right">
+                        <div className="text-xl font-bold">งานรอลูกค้า</div>
+                        <div className="text-4xl font-bold">{totalRepairRecordCustomer}</div>
+                    </div>
+                </div>
                 <div>
-                    <select className="form-control"
+                    {/* Dropdown สำหรับกรองสถานะ */}
+                    <select
+                        className="form-control mt-10"
                         value={statusForFilter}
                         onChange={(e) => handleFilter(e.target.value)}
                     >
@@ -395,15 +286,15 @@ export default function Page() {
                 </div>
                 <div className="card-body">
                     <div className="flex flex-wrap gap-4 mt-4">
+                        {/* แสดงการ์ดรายการซ่อม */}
                         {repairRecords.map((repairRecord: any) => (
                             <div
                                 key={repairRecord.id}
                                 className={`p-4 rounded-lg ${getStatusColor(repairRecord.status)} w-full md:w-[48%] lg:w-[32%] cursor-pointer`}
-                                onClick={() => handleCardClick(repairRecord)} // เพิ่ม onClick event
+                                onClick={() => handleCardClick(repairRecord)}
                             >
                                 <h2 className="text-xl font-bold mb-4 text-black">{getStatusName(repairRecord.status)}</h2>
                                 <div className="mb-4 p-4 bg-white rounded-lg shadow text-black">
-                                    {/* แสดงรูปภาพของผู้แจ้งซ่อมหรือช่างซ่อม ขึ้นอยู่กับสถานะ */}
                                     <div className="flex items-center mb-4">
                                         {repairRecord.status === "repairing" && repairRecord.engineer?.userImage ? (
                                             <img
@@ -433,12 +324,6 @@ export default function Page() {
                                     <div>End Date: {repairRecord.endJobDate ? dayjs(repairRecord.endJobDate).format('DD/MM/YYYY HH:mm') : '-'}</div>
                                     <div>Solving: {repairRecord.solving || '-'}</div>
                                     <div>EN. Tech: {repairRecord.engineer?.username ?? '-'}</div>
-                                    <div className="flex gap-2 mt-2">
-                                        {/* <button className="btn-edit" onClick={() => handleEdit(repairRecord.id)}>
-                                            <i className="fa-solid fa-edit mr-3"></i>
-                                            ปรับสถานะ
-                                        </button> */}
-                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -446,33 +331,36 @@ export default function Page() {
                 </div>
             </div>
 
+            {/* Modal สำหรับปรับสถานะ */}
             <Modal title="ปรับสถานะ" isOpen={showModal} onClose={() => setShowModal(false)}>
                 <div>
                     <div className="flex gap-4">
                         <div className="w-1/2">
                             <div>Add Status</div>
                             <div>
-                                <select className="form-control w-full"
+                                <select
+                                    className="form-control w-full"
                                     value={status}
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
                                     {statusList
-                                        .filter((item) => status === 'done' || item.value !== 'complete') // 🔹 กรอง complete ออก ถ้าไม่ใช่ done
+                                        .filter((item) => status === 'done' || item.value !== 'complete')
                                         .map((item) => (
                                             <option value={item.value} key={item.value}>
                                                 {item.label}
                                             </option>
-                                        ))
-                                    }
+                                        ))}
                                 </select>
                             </div>
                         </div>
                         <div className="w-1/2">
                             <div>Select Tech</div>
                             <div>
-                                <select className="form-control w-full"
+                                <select
+                                    className="form-control w-full"
                                     value={engineerId}
-                                    onChange={(e) => setEngineerId(Number(e.target.value))}>
+                                    onChange={(e) => setEngineerId(Number(e.target.value))}
+                                >
                                     <option value="">--- Select Tech ---</option>
                                     {engineers.map((engineer) => (
                                         <option value={engineer.id} key={engineer.id}>
@@ -483,14 +371,15 @@ export default function Page() {
                             </div>
                         </div>
                     </div>
-
                     <div className="mt-3">
-                        <div>Sovling</div>
-                        <textarea className="form-control w-full" rows={5}
+                        <div>Solving</div>
+                        <textarea
+                            className="form-control w-full"
+                            rows={5}
                             value={solving}
-                            onChange={(e) => setSolving(e.target.value)}></textarea>
+                            onChange={(e) => setSolving(e.target.value)}
+                        ></textarea>
                     </div>
-
                     <button className="btn-primary mt-3" onClick={handleSave}>
                         <i className="fa-solid fa-check mr-3"></i>
                         Save
@@ -498,5 +387,5 @@ export default function Page() {
                 </div>
             </Modal>
         </>
-    )
+    );
 }

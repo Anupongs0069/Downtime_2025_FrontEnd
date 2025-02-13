@@ -36,15 +36,15 @@ export function Sidebar() {
 
     if (userLevel === 'admin') {
         menuItems = [
-            { title: 'Dashboard', href: '/backoffice/dashboard', icon: 'fa-solid fa-chart-simple' },
+            // { title: 'Dashboard', href: '/backoffice/dashboard', icon: 'fa-solid fa-chart-simple' },
             { title: 'Downtime', href: '/backoffice/downtime', icon: 'fa-solid fa-clock' },           
             { title: 'Repair Record', href: '/backoffice/repair-record', icon: 'fa-solid fa-screwdriver' },
             { title: 'Repair Status', href: '/backoffice/repair-status', icon: 'fa-solid fa-gear' },
             { title: 'All Record', href: '/backoffice/record', icon: 'fa-solid fa-list' },
             { title: 'Member', href: '/backoffice/user', icon: 'fa-solid fa-users' },
             { title: 'Device', href: '/backoffice/device', icon: 'fa-solid fa-box' },
-            { title: 'Income Report', href: '/backoffice/income-report', icon: 'fa-solid fa-money-bill' },
-            { title: 'Company', href: '/backoffice/company', icon: 'fa-solid fa-shop' },
+            // { title: 'Income Report', href: '/backoffice/income-report', icon: 'fa-solid fa-money-bill' },
+            // { title: 'Company', href: '/backoffice/company', icon: 'fa-solid fa-shop' },
         ];
     } else if (userLevel === 'user') {
         menuItems = [
@@ -68,11 +68,15 @@ export function Sidebar() {
 
     return (
         <aside className="sidebar">
-            <div className="sidebar-header">
-                <i className="fa-solid fa-user text-4xl mr-5"></i>
-                <h1 className="text-xl font-bold">Bun Service 2025</h1>
-            </div>
+            {/* <div className="sidebar-header">
+                <i className="fa-solid fa-gear text-4xl mr-5"></i>
+                <h1 className="text-xl font-bold">Down Time Online</h1>
+            </div> */}
             <nav className="sidebar-nav bg-gray-950 p-4 rounded-tl-3xl ml-4">
+            {/* <div className="sidebar-header">
+                <i className="fa-solid fa-gear text-4xl mr-5"></i>
+                <h1 className="text-xl font-bold">Down Time Online</h1>
+            </div> */}
                 <ul>
                     {menuItems.map((item) => (
                         <li key={item.title}>

@@ -3,15 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #ffffff; /* background สีขาว */
+  --foreground: #171717; /* ตัวอักษรสีดำ */
 }
 
 body {
@@ -21,7 +14,7 @@ body {
 }
 
 .form-control {
-  @apply border border-gray-300 dark:border-gray-600 p-2 rounded bg-gray-50 dark:bg-gray-700 dark:text-white;
+  @apply border border-gray-300 p-2 rounded bg-white text-gray-800;
 }
 
 .btn {
@@ -29,15 +22,15 @@ body {
 }
 
 .sidebar {
-  @apply bg-gray-800 text-gray-200 shadow-sm min-h-screen w-64;
+  @apply bg-white text-gray-800 shadow-sm min-h-screen w-64;
 }
 
 .sidebar-item {
-  @apply flex items-center p-2 text-gray-300 rounded hover:bg-gray-300 hover:text-gray-800;
+  @apply flex items-center p-2 text-gray-800 rounded hover:bg-gray-200 hover:text-gray-800;
 }
 
 .sidebar-nav {
-  @apply p-4 bg-gradient-to-t from-gray-700 to-gray-950 border-t border-gray-700 min-h-screen;
+  @apply p-4 bg-white border-t border-gray-300 min-h-screen;
 }
 
 .sidebar-nav ul {
@@ -45,11 +38,11 @@ body {
 }
 
 .sidebar-header {
-  @apply flex items-center justify-center p-4 bg-gradient-to-tl from-indigo-600 to-pink-600 ml-4 mr-4 rounded-2xl mb-4;
+  @apply flex items-center justify-center p-4 bg-indigo-600 text-white ml-4 mr-4 rounded-2xl mb-4;
 }
 
 .card {
-  @apply bg-gray-800 p-8 rounded-2xl shadow-md h-full bg-opacity-50;
+  @apply bg-white p-8 rounded-2xl shadow-md h-full;
 }
 
 .card input {
@@ -57,11 +50,11 @@ body {
 }
 
 .card h1 {
-  @apply text-2xl font-bold text-gray-200 mb-5;
+  @apply text-2xl font-bold text-gray-800 mb-5;
 }
 
 .card-body {
-  @apply text-gray-400;
+  @apply text-gray-800;
 }
 
 .btn-primary {
@@ -73,7 +66,7 @@ body {
 }
 
 .table th {
-  @apply text-left p-4 bg-gray-950 text-gray-400;
+  @apply text-left p-4 bg-gray-100 text-gray-800;
 }
 
 .table th:first-child {
@@ -85,7 +78,7 @@ body {
 }
 
 .table tbody td {
-  @apply p-4 bg-gray-900 text-gray-400 border-b border-gray-700;
+  @apply p-4 bg-white text-gray-800 border-b border-gray-200;
 }
 
 .table tbody tr:last-child td:first-child {
@@ -101,26 +94,9 @@ body {
 }
 
 .btn-edit {
-  @apply bg-gray-700 text-blue-400 px-4 py-2 rounded-none mr-1;
+  @apply bg-gray-200 text-blue-500 px-4 py-2 rounded-none mr-1;
 }
 
 .btn-delete {
-  @apply bg-gray-700 text-red-400 px-4 py-2 rounded-none;
+  @apply bg-gray-200 text-red-500 px-4 py-2 rounded-none;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

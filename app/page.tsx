@@ -38,7 +38,7 @@ export default function Home() {
         localStorage.setItem('bun_service_level', response.data.user.level);
 
         if (response.data.user.level === 'admin') {
-          router.push('/backoffice/dashboard');
+          router.push('/backoffice/downtime');
         } else if (response.data.user.level === 'user') {
           router.push('/backoffice/repair-record');
         } else if (response.data.user.level === 'engineer') {
